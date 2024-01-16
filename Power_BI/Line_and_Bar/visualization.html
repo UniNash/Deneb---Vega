@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/vega@5.26.1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5.16.3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.23.0"></script>
+</head>
+<body>
+  <div id="vis"/>
+  <script>
+    const spec = {
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "description": "A basic bar chart example, with value labels shown upon pointer hover.",
+  "width": 400,
+  "height": 200,
+  "padding": 5,
+  "data": [
+    {
+      "name": "table",
+      "values": [
+        {"category": "A", "amount": 28, "amount2": 28},
+        {"category": "B", "amount": 55, "amount2": 55},
+        {"category": "C", "amount": 43, "amount2": 43},
+        {"category": "D", "amount": 91, "amount2": 91},
+        {"category": "E", "amount": 81, "amount2": 100},
+        {"category": "F", "amount": 53, "amount2": 53},
+        {"category": "G", "amount": 19, "amount2": 19},
+        {"category": "H", "amount": 87, "amount2": 87}
+      ]
+    }
+  ],
+  "scales": [
+    {
+      "name": "xscale",
+      "type": "band",
+      "domain": {"data": "table", "field": "category"},
+      "range": "width",
+      "padding": 0.5,
+      "round": true
+    },
+    {
+      "name": "xscale2",
+      "type": "band",
+      "range": "width",
+      "padding": 0.9,
+      "domain": {"data": "table", "field": "category"}
+    },
+    {
+      "name": "yscale",
+      "domain": {"data": "table", "field": "amount"},
+      "nice": true,
+      "range": "height"
+    },
+    {
+      "name": "yscale2",
+      "domain": {"data": "table", "field": "amount2"},
+      "nice": true,
+      "range": "height"
+    }
+  ],
+  "axes": [
+    {"orient": "bottom", "scale": "xscale", "ticks": false},
+    {"orient": "bottom", "scale": "xscale2", "ticks": false, "labels": false},
+    {"orient": "left", "scale": "yscale"},
+    {"orient": "right", "scale": "yscale2"}
+  ],
+  "marks": [
+    {
+      "type": "rect",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "x": {"scale": "xscale", "field": "category"},
+          "width": {"scale": "xscale", "band": 1},
+          "y": {"scale": "yscale", "field": "amount"},
+          "y2": {"scale": "yscale", "value": 0}
+        },
+        "update": {"fill": {"value": "steelblue"}},
+        "hover": {"fill": {"value": "red"}}
+      }
+    },
+    {
+      "type": "line",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "x": {"scale": "xscale2", "field": "category"},
+          "y": {"scale": "yscale2", "field": "amount2"},
+          "stroke": {"value": "red"}
+        },
+        "update": {"interpolate": {"value": "linear"}}
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "x": {"scale": "xscale2", "field": "category", "offset": -2},
+          "y": {"scale": "yscale2", "field": "amount2", "offset": -7},
+          "text": {"field": "amount2"},
+          "fill": {"value": "#000"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data": "table"},
+      "encode": {
+        "enter": {
+          "x": {"scale": "xscale", "field": "category", "offset": 6},
+          "y": {"scale": "yscale", "field": "amount", "offset": 30},
+          "text": {"field": "amount"},
+          "fill": {"value": "yellow"}
+        }
+      }
+    }
+  ],
+  "config": {}
+};
+    vegaEmbed("#vis", spec, {mode: "vega"}).then(console.log).catch(console.warn);
+  </script>
+</body>
+</html>
