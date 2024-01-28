@@ -1,0 +1,57 @@
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "description": "An example of a zoomable circle packing layout for hierarchical data.",
+  "width": 600,
+  "height": 600,
+  "padding": 5,
+
+  "signals": [
+    {
+      "name": "click_to_zoom_in",
+      "init": "8000",
+      "description": "clicking on the mark to zoom-in",
+      "on": [
+        {
+          "events": {"type": "click", "markname": "circles"},
+          "update": "90000"
+        }
+      ]
+    }
+      ],
+    
+
+"marks": 
+  [
+    {
+      "name": "circles",
+      "description": "a zoomable circle",
+      "type": "symbol",
+      "encode":               // An object containing a set of visual encoding rules for mark properties.
+      {
+        "enter":
+        {
+          "shape": {"value": "circle"},
+          "angle":{"value":0},
+          //"size" :{"value":90000},
+          "fill" :{"value":"#00008B"},
+          "opacity":{"value":"1"},  //general opacity for all properties
+          "fillOpacity":{"value":"0.7"},   // opacity for fill
+          "stroke" :{"value":"#000000"}, // border for circle
+          "strokeWidth":{"value":"3"},   // width of the border
+          "strokeOpacity":{"value":"1"},
+          "cursor" :{"value":"zoom-in"},
+          "x":{"value":100},
+          "y":{"value":100},
+
+        },
+        "update" : 
+        {
+          "size" : {"signal":"lerp([8000,click_to_zoom_in],1)"},
+          "x":{"signal":"lerp([100,width/2],0.5)"},
+          "y":{"signal":"lerp([100,width/2],1)"}
+        }
+
+     }      
+    }
+  ]
+}
