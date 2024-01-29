@@ -6,17 +6,7 @@
   "padding": 5,
 
   "signals": [
-    {
-      "name": "click_to_zoom_in",
-      "init": "8000",
-      "description": "clicking on the mark to zoom-in",
-      "on": [
-        {
-          "events": {"type": "click", "markname": "circles"},
-          "update": "90000"
-        }
-      ]
-    },
+
     {
       "name": "timer",
       "description": "The timer to be used for transitions such as zoom, fade, etc.",
@@ -43,12 +33,86 @@
       "description": "The normalized time for easing",
       "update": "interpolateTime ? clamp((timer-interpolateTime.start)/(interpolateTime.end-interpolateTime.start), 0, 1): null"
     },
+        {
+      "name": "testval",
+      "description": "The normalized time for easing",
+      "update": "interpolateTime ?(timer-interpolateTime.start):null"
+    },
+    {
+      "name": "testval2",
+      "description": "The normalized time for easing",
+      "update": "interpolateTime ?(interpolateTime.end-interpolateTime.start):null"
+    },
+    {
+      "name": "t2",
+      "description": "The normalized time for easing",
+      "update": "interpolateTime ?(timer-interpolateTime.start)/(interpolateTime.end-interpolateTime.start):null"
+    },
+
     {
       "name": "tEase",
       "description": "The easing calculation. Currently set as easeInOutCubic",
       "update": "t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1"
+    },
+        {
+      "name": "tEase2",
+      "description": "The easing calculation. Currently set as easeInOutCubic",
+      "update": 
+      "t < 0.5 ? 16 * t * t * t * t * t : 1 - pow(-2 * t + 2, 5) / 2"
+    },
+   
+        {
+      "name": "tEase3",
+      "description": "The easing calculation. Currently set as easeInOutCubic",
+      "update": 
+      "t === 0 ? 0 : pow(2, 10 * t - 10)"
+    },
+            {
+      "name": "tEase4",
+      "description": "easing. Currently set as easeInOutCubic",
+      "update": 
+      "t === 0 ? 0 : t === 1? 1 : pow(2, -10 * t) * sin((t * 10 - 0.75) * (2 * PI) / 3) + 1"
+    },
+    {
+      "name": "lerpval",
+      "description": "lerpvalue",
+      "update": "lerp([100, 20],tEase2)"
+    },
+    {
+      "name": "intermitval",
+      "description": "lerpvalue",
+      "update": "{1:lerp([1, 50],tEase),2:(2 * lerpval),3:2*(2 * lerpval),4:pow(2*(2 * lerpval),2),5:now()}"
+    },
+    {
+      "name": "val",
+      "description": "lerpvalue",
+      "update": "tEase4 == 0 ? 5000:pow(2*(2 * 100 * tEase4),2)"
+    },
+    {
+      "name": "val2",
+      "description": "lerpvalue",
+      "update": "zoomin ? 1:2"
+    },
+        {
+      "name": "zoomin",
+      "init": "1",
+      "on": [
+        {
+          "events": {"type": "click", "markname": "circles"},
+          "update": "val"
+        }
+      ]
+    },
+        {
+      "name": "zoomout",
+      "init": "1",
+      "on": [
+        {
+          "events": {"type": "click", "markname": "circles"},
+          "update": "5000"
+        }
+      ]
     }
-
 
       ],
     
@@ -59,29 +123,27 @@
       "name": "circles",
       "description": "a zoomable circle",
       "type": "symbol",
-      "encode":               // An object containing a set of visual encoding rules for mark properties.
+      "encode": 
       {
         "enter":
         {
           "shape": {"value": "circle"},
           "angle":{"value":0},
-          //"size" :{"value":90000},
+          "size" :{"value":2000},
           "fill" :{"value":"#00008B"},
-          "opacity":{"value":"1"},  //general opacity for all properties
-          "fillOpacity":{"value":"0.7"},   // opacity for fill
-          "stroke" :{"value":"#000000"}, // border for circle
-          "strokeWidth":{"value":"3"},   // width of the border
+          "opacity":{"value":"1"},          //general opacity for all properties
+          "fillOpacity":{"value":"0.7"},    // opacity for fill
+          "stroke" :{"value":"#000000"},    // border for circle
+          "strokeWidth":{"value":"3"},      // width of the border
           "strokeOpacity":{"value":"1"},
           "cursor" :{"value":"zoom-in"},
-          "x":{"value":100},
-          "y":{"value":100},
+          "x":{"value":300},
+          "y":{"value":300},
 
         },
         "update" : 
         {
-          "size" : {"signal":"pow(2*(2 * lerp([1, 50],tEase)),2)"},
-          "x":{"signal":"300"},
-          "y":{"signal":"300"}
+          "size" : {"signal":"val"}
         }
 
      }      
