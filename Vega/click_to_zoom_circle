@@ -16,7 +16,40 @@
           "update": "90000"
         }
       ]
+    },
+    {
+      "name": "timer",
+      "description": "The timer to be used for transitions such as zoom, fade, etc.",
+      "on": [{"events": "timer", "update": "now()"}]
+    },
+
+    {
+      "name": "interpolateTime",
+      "description": "the start and end times in miliseconds for animation interpolations",
+      "on": [
+        {
+          "events": 
+                  {
+                    "type": "click",
+                    "markname": "circles"
+                  },
+                  "update": "{'start': timer, 'end': timer+750}"
+          
+        }
+      ]
+    },
+    {
+      "name": "t",
+      "description": "The normalized time for easing",
+      "update": "interpolateTime ? clamp((timer-interpolateTime.start)/(interpolateTime.end-interpolateTime.start), 0, 1): null"
+    },
+    {
+      "name": "tEase",
+      "description": "The easing calculation. Currently set as easeInOutCubic",
+      "update": "t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1"
     }
+
+
       ],
     
 
@@ -46,9 +79,9 @@
         },
         "update" : 
         {
-          "size" : {"signal":"lerp([8000,click_to_zoom_in],1)"},
-          "x":{"signal":"lerp([100,width/2],0.5)"},
-          "y":{"signal":"lerp([100,width/2],1)"}
+          "size" : {"signal":"pow(2*(2 * lerp([1, 50],tEase)),2)"},
+          "x":{"signal":"300"},
+          "y":{"signal":"300"}
         }
 
      }      
