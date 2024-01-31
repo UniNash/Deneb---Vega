@@ -1,15 +1,31 @@
 {
   "$schema": "https://vega.github.io/schema/vega/v5.json",
   "description": "An example of a zoomable circle packing layout for hierarchical data.",
-  "width": {"signal":"canvaswidth"},
-  "height": 600,
+  "width": {"signal": "sqrt(calculated_size)*2"},
+  "height": {"signal": "sqrt(calculated_size)*2"},
   "padding": 5,
 
   "signals": [
 
-    {"name": "canvaswidth",
-     "update":"(25/2)*300"
+    { "name": "Size", 
+      "value": 5000,
+      "bind": {"input": "value", "min": 800, "max": 10000} 
     },
+   
+    { "name": "Scale", 
+      "value": 1,
+      "bind": {"input": "range", "min": 1, "max": 100} 
+    },
+
+    { "name": "Transition", 
+      "value": "Ease-In-Out-Cubic",
+      "bind": {"input": "select", 
+                "options":["Ease-In-Out-Cubic","Ease-Out-Circ","Ease-In-Out-Elastic"]
+              
+              } 
+    },
+
+  /* setting up timer and animation/transition effects */
 
     {
       "name": "timer",
@@ -34,88 +50,104 @@
     },
     {
       "name": "t",
-      "description": "The normalized time for easing",
+      "description": "The normalized time for easg",
       "update": "interpolateTime ? clamp((timer-interpolateTime.start)/(interpolateTime.end-interpolateTime.start), 0, 1): null"
     },
+
+        /* clamp function - Restricts value to be    between the specified min and max.*/
+
+        /* below is the breakdown of how the value of t is captured*/
+     
         {
-      "name": "testval",
+      "name": "breakdown_t_1",
       "description": "The normalized time for easing",
       "update": "interpolateTime ?(timer-interpolateTime.start):null"
     },
     {
-      "name": "testval2",
+      "name": "breakdown_t_2",
       "description": "The normalized time for easing",
       "update": "interpolateTime ?(interpolateTime.end-interpolateTime.start):null"
     },
     {
-      "name": "t2",
+      "name": "breakdown_t_3",
       "description": "The normalized time for easing",
       "update": "interpolateTime ?(timer-interpolateTime.start)/(interpolateTime.end-interpolateTime.start):null"
     },
 
+        /* ease in out trasition calculations */ 
     {
-      "name": "tEase",
-      "description": "The easing calculation. Currently set as easeInOutCubic",
+      "name": "easeInOUtCubic",
+      "description": "easeInOutCubic calculation",
       "update": "t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1"
     },
-        {
-      "name": "tEase2",
-      "description": "The easing calculation. Currently set as easeInOutCubic",
-      "update": 
-      "t < 0.5 ? 16 * t * t * t * t * t : 1 - pow(-2 * t + 2, 5) / 2"
-    },
-   
-        {
-      "name": "tEase3",
-      "description": "The easing calculation. Currently set as easeInOutCubic",
-      "update": 
-      "t === 0 ? 0 : pow(2, 10 * t - 10)"
-    },
-            {
-      "name": "tEase4",
-      "description": "easing. Currently set as easeInOutCubic",
-      "update": 
-      "t === 0 ? 0 : t === 1? 1 : pow(2, -10 * t) * sin((t * 10 - 0.75) * (2 * PI) / 3) + 1"
-    },
     {
-      "name": "lerpval",
-      "description": "lerpvalue",
-      "update": "lerp([100, 20],tEase2)"
+      "name": "easeOutCirc",
+      "description": "easeInBounce calculation ",
+      "update": "sqrt(1 - pow(t - 1, 2))"
     },
         {
-      "name": "lerparray",
-      "update":"[20,100]",
-      "description": "arryval",
-      "on": [
-        {
-          "events": {"type": "click", "markname": "circles"},
-          "update": "reverse(lerparray)"
-        }
-      ]
+      "name": "easeInOutElastic",
+      "description": "easeInOutElastic calculation",
+      "update": "t === 0 ? 0 : t === 1 ? 1: t < 0.5 ? -(pow(2, 20 * t - 10) * sin((20 * t - 11.125) * (2 * PI) / 4.5)) / 2 : (pow(2, -20 * t + 10) * sin((20 * t - 11.125) * (2 * PI) / 4.5)) / 2 + 1"
     },
-    
+
+      /* switching trasitions */
     {
-      "name": "intermitval",
-      "description": "lerpvalue",
-      "update": "{1:lerp([1, 50],tEase),2:(2 * lerpval),3:2*(2 * lerpval),4:pow(2*(2 * lerp(lerparray,tEase2)),2),5:now()}"
+      "name": "tEase",
+      "description": "switching transitions based on selection",
+      "update": "Transition === 'Ease-In-Out-Cubic' ? easeInOUtCubic: Transition === 'Ease-In-Out-Elastic' ? easeInOutElastic : easeOutCirc"
     },
+
     {
-      "name": "val",
-      "description": "lerpvalue",
-      "update": "tEase4 == 0 ? 5000:pow(2*(2 * lerp(lerparray,tEase2)),2)"
-    },
-    {
-      "name": "opac",
+      "name": "transition_anchor",
       "update":"[1,0]",
-      "on":
+      "on": 
+        [
+          {
+            "events": {"type": "click", "markname": "circles"},
+            "update": "reverse(transition_anchor)"
+          }
+        ]
+    },
+    {
+      "name": "zoom",
+      //"update" : 1,
+      "on": 
       [
         {
-          "events": {"type": "click", "markname": "circles"},
-          "update": "reverse(opac)"
+        "events": {"signal": "transition_anchor"},
+        "update": "transition_anchor['0']"
         }
-
       ]
-    }
+    },
+    {
+      "name" : "calculated_size",
+      "update": "zoom == 0 ? lerp([1,Scale],tEase)*Size : zoom == 1 ? lerp([Scale,1],tEase)*Size :Size"
+      //"zoom == 1 ? 5000 : zoom == 0 ? pow(Scale,tEase)*Size : 1000"
+      //(Size*Scale)/pow(Scale,tEase)
+      //lerp([0,Scale],tEase)*Size
+      //pow(Scale,tEase)*Size
+
+    },
+    {
+      "name" : "test",
+      "update" : "{a:zoom,b:calculated_size}"
+    },
+    {
+      "name" : "calculated_opacity",
+      "update" : "isValid(zoom)? lerp(reverse(transition_anchor),tEase):1"
+    },
+    {
+      "name" : "calculated_opacity_text",
+      "update" : "isValid(zoom)? lerp(transition_anchor,tEase):1"
+    },
+    {
+      "name" : "font_size",
+      "update" : "isValid(zoom)? lerp(transition_anchor,tEase)*Scale : 0"
+    },
+
+    /* lerp() gives you the  linearly interpolated value between the first and last entries */
+
 
       ],
     
@@ -132,26 +164,57 @@
         {
           "shape": {"value": "circle"},
           "angle":{"value":0},
-          "size" :{"value":2000},
+          //"size" :{"signal":"Size"},
           "fill" :{"value":"#00008B"},
-          "opacity":{"value":"1"},          //general opacity for all properties
-          "fillOpacity":{"value":"0.7"},    // opacity for fill
-          "stroke" :{"value":"#000000"},    // border for circle
-          "strokeWidth":{"value":"3"},      // width of the border
-          "strokeOpacity":{"value":"1"},
+          "opacity":{"value":1},          //general opacity for all properties
+          "fillOpacity":{"value":0.7},    // opacity for fill
+          "stroke" :{"value":"#000000"},  // border for circle
+          "strokeWidth":{"value":3},      // width of the border
+          "strokeOpacity":{"value":1},
           "cursor" :{"value":"zoom-in"},
-          "x":{"value":300},
-          "y":{"value":300},
+          "x":{"signal":"width/2"},
+          "y":{"signal":"height/2"},
 
         },
+
         "update" : 
         {
-          "size" : {"signal":"val"},
-          "fillOpacity": {"signal":"lerp(opac,tEase2)"},
-          "stroke" :{"value":"#999342"}
+          "size" : {"signal":"calculated_size"},
+          "fillOpacity": {"signal":"calculated_opacity"},
+          "stroke" :{"value":"#999342"},
+          "x":{"signal": "sqrt(calculated_size)"},
+          "y":{"signal": "sqrt(calculated_size)"}
         }
 
      }      
     }
+    ,
+        {
+      "name": "data_details",
+      "details": "textual",
+      "type": "text",
+      "encode": {
+        "enter": {
+          "text": {"value": "Naresh"},
+          "fill": {"value": "#000"},
+          "fontSize": {"value":0},
+          "align": {"value": "center"},
+          "x": {"value": 300},
+          "y": {"signal": 300}
+
+        },
+        "update":{
+          "fontSize":{"signal": "font_size <= 12 ? font_size*1.5 : font_size >= 100 ? font_size/1.6 : font_size"},
+          "opacity":{"signal":"calculated_opacity_text"},
+          "text":{"signal": "Transition"},
+          "fillOpacity":{"signal":"calculated_opacity_text"},
+          "x":{"signal": "sqrt(calculated_size)"},
+          "y":{"signal": "sqrt(calculated_size)"}
+
+
+        }
+      }
+    }
+
   ]
 }
